@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+/* ── Кастомные CSS-переменные журнала ─────────────────────── */
+:root {
+  --color-graphite: #1c1c1e;
+  --color-graphite-mid: #3a3a3c;
+  --color-graphite-soft: #636366;
+  --color-accent: #2f6690;
+  --color-accent-light: #4a8ab5;
+  --color-accent-muted: #e8f0f7;
+  --color-rule: #d1d5db;
+  --color-bg: #fafaf9;
+  --color-surface: #ffffff;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Базовые стили ──────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-graphite);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Типографика статьи ──────────────────────────────────────── */
+.article-body {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: var(--color-graphite-mid);
+}
+
+.article-heading {
+  font-family: var(--font-display);
+  color: var(--color-graphite);
+}
+
+/* ── Кнопка «Читать далее» ──────────────────────────────────── */
+.btn-read-more {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 1.5px solid var(--color-accent);
+  padding-bottom: 1px;
+  transition: color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-read-more:hover {
+  color: var(--color-accent-light);
+  border-color: var(--color-accent-light);
+}
+
+/* ── Карточка статьи ──────────────────────────────────────────── */
+.article-card {
+  background: var(--color-surface);
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.article-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.09);
+  transform: translateY(-3px);
+}
+
+/* ── Тег статьи ─────────────────────────────────────────────── */
+.article-tag {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: var(--color-accent-muted);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+/* ── Блок цитаты / формулы ──────────────────────────────────── */
+.citation-block {
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-accent-muted);
+  padding: 16px 20px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.citation-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--color-graphite-mid);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Изображение статьи с подписью ─────────────────────────── */
+.article-figure {
+  margin: 32px 0;
+}
+
+.article-figure figcaption {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-graphite-soft);
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Шапка статьи ──────────────────────────────────────────── */
+.article-header-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+/* ── Навигация ─────────────────────────────────────────────── */
+.nav-link {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-graphite-mid);
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ── Разделительная линия ─────────────────────────────────── */
+.rule {
+  height: 1px;
+  background: var(--color-rule);
+  border: none;
+}
+
+/* ── Скролл-лок при открытом модале ────────────────────────── */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ── Оверлей модала ──────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 28, 30, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  animation: fadeIn 0.25s ease;
+}
+
+.modal-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 51;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease;
+}
+
+/* ── Кнопка копирования ──────────────────────────────────────── */
+.copy-btn {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: transparent;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 3px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: var(--color-accent);
+  color: white;
+}
+
+.copy-btn.copied {
+  background: #2e7d32;
+  border-color: #2e7d32;
+  color: white;
+}
+
+/* ── Плавный скролл в модале ──────────────────────────────── */
+.modal-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-panel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.modal-panel::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 3px;
+}
+
+/* ── Секция «Об авторе» ─────────────────────────────────────── */
+.about-section {
+  background: var(--color-surface);
+  border: 1px solid #e5e7eb;
+}
+
+/* ── Категории теги ─────────────────────────────────────────── */
+.category-chip {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 2px;
+  border: 1.5px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.category-chip.active {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.category-chip:not(.active) {
+  color: var(--color-graphite-soft);
+  border-color: var(--color-rule);
+}
+
+.category-chip:not(.active):hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── Шрифтовые утилиты ───────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-serif   { font-family: var(--font-serif); }
+.font-sans    { font-family: var(--font-sans); }
+
+/* ── Декоративная горизонтальная черта под заголовком ─────── */
+.title-rule::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--color-accent);
+  margin-top: 12px;
+}
+
+/* ── Ховер на изображении карточки ─────────────────────────── */
+.card-img-wrap {
+  overflow: hidden;
+}
+
+.card-img-wrap img {
+  transition: transform 0.5s ease;
+}
+
+.article-card:hover .card-img-wrap img {
+  transform: scale(1.04);
+}
+
+/* ── Featured card ─────────────────────────────────────────── */
+.featured-badge {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: white;
+  background: var(--color-accent);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+/* ── Адаптивная вёрстка для мобильных ──────────────────── */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .article-header-image {
+    height: 240px !important;
+  }
+  .featured-card {
+    grid-template-columns: 1fr !important;
+  }
+  .featured-card img {
+    height: 220px !important;
+  }
+}
+
+/* ── Print styles (для будущего использования) ─────────────── */
+@media print {
+  .modal-overlay, .modal-panel { display: none; }
+  body { background: white; }
+}
