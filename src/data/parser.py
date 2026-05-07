@@ -99,60 +99,50 @@ def format_article(article):
     return '\n'.join(lines)
 
 def update_articles_ts(new_articles):
-    """Обновляет articles.ts, добавляя новые статьи в начало массива, проверяя дубликаты по title, ограничивая до 50."""
+    """Обновляет articles.ts, полностью перезаписывая файл свежими данными."""
     file_path = os.path.join(os.path.dirname(__file__), 'articles.ts')
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # Найти существующие titles
-    existing_titles = set(re.findall(r"title: `([^`]+)`", content))
-
-    # Фильтровать новые статьи по title
+    
+    # Фильтровать новые статьи по title, если файл существует
+    existing_titles = set()
+    existing_articles = []
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        existing_titles = set(re.findall(r"title: `([^`]+)`", content))
+        
+        # Извлечь существующие статьи как строки
+        start = content.find('export const articles: ArticleData[] = [')
+        if start != -1:
+            end = content.rfind('];')
+            array_str = content[start:end+2]
+            articles_list = array_str[array_str.find('[')+1:array_str.rfind(']')].strip()
+            if articles_list.endswith(','):
+                articles_list = articles_list[:-1]
+            raw_articles = articles_list.split('},\n  {')
+            existing_articles = []
+            for raw in raw_articles:
+                if raw.strip():
+                    art = '  {' + raw + '}'
+                    existing_articles.append(art)
+    
+    # Фильтровать новые
     unique_new_articles = [a for a in new_articles if a['title'] not in existing_titles]
-
-    if not unique_new_articles:
-        print("Нет новых статей для добавления.")
-        return
-
-    # Найти начало массива
-    start = content.find('export const articles: ArticleData[] = [')
-    if start == -1:
-        print("Не найден массив articles.")
-        return
-
-    # Найти позицию после [
-    insert_pos = start + len('export const articles: ArticleData[] = [') + 1  # +1 для \n
-
-    # Сгенерировать код для новых статей
-    new_code = ',\n'.join([format_article(a) for a in unique_new_articles]) + ',\n'
-
-    # Вставить
-    new_content = content[:insert_pos] + new_code + content[insert_pos:]
-
+    
+    # Собрать все статьи
+    all_formatted = [format_article(a) for a in unique_new_articles] + existing_articles
+    
+    # Ограничить до 50
+    if len(all_formatted) > 50:
+        all_formatted = all_formatted[:50]
+    
+    # Сгенерировать новый content
+    new_content = 'export const articles: ArticleData[] = [\n' + ',\n'.join(all_formatted) + '\n];'
+    
+    # Перезаписать файл
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(new_content)
-
-    # Ограничить до 50 статей
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    start = content.find('export const articles: ArticleData[] = [')
-    end = content.rfind('];')
-    array_str = content[start:end+2]
-
-    # Разделить на статьи
-    articles_list = array_str[array_str.find('[')+1:array_str.rfind(']')].strip()
-    if articles_list.endswith(','):
-        articles_list = articles_list[:-1]
-    articles = [art.strip() for art in articles_list.split('},\n') if art.strip()]
-    if len(articles) > 50:
-        articles = articles[:50]
-        new_array_str = 'export const articles: ArticleData[] = [\n  ' + ',\n  '.join(articles) + '\n];'
-        content = content[:start] + new_array_str + content[end+2:]
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-    print(f"Добавлено {len(unique_new_articles)} новых статей. Общее количество: {len(articles)}.")
+    
+    print(f"Добавлено {len(unique_new_articles)} новых статей. Общее количество: {len(all_formatted)}.")
 
 if __name__ == "__main__":
     print("Запуск парсера arXiv...")
