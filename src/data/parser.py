@@ -21,7 +21,8 @@ categories = {
 def get_keyword(title):
     """Извлекает ключевое слово из заголовка для Unsplash."""
     words = title.lower().split()[:3]
-    return '-'.join(words).replace(',', '').replace('.', '')
+    keyword = '-'.join(words).replace(',', '').replace('.', '').replace(':', '').replace(';', '')
+    return keyword if keyword else 'science'
 
 def parse_articles():
     """Парсит статьи из arXiv по категориям."""
@@ -44,6 +45,12 @@ def parse_articles():
             date = datetime.datetime.now().strftime('%d %B %Y')
             keyword = get_keyword(title_en)
             image_url = f'https://source.unsplash.com/1600x900/?{keyword}'
+            fallback_url = 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=1000'
+            if not keyword or not image_url.startswith('http') or 'placeholder' in image_url.lower():
+                image_url = fallback_url
+                alt = 'science'
+            else:
+                alt = keyword
             article = {
                 'id': article_id,
                 'date': date,
@@ -52,8 +59,8 @@ def parse_articles():
                 'subtitle': summary_ru[:150] + '...' if len(summary_ru) > 150 else summary_ru,
                 'author': author,
                 'readingTime': 6,
-                'previewImage': {'url': image_url, 'alt': keyword},
-                'headerImage': {'url': image_url, 'alt': keyword},
+                'previewImage': {'url': image_url, 'alt': alt},
+                'headerImage': {'url': image_url, 'alt': alt},
                 'excerpt': summary_ru,
                 'sections': [{'heading': 'Аннотация оригинального исследования', 'body': summary_ru}]
             }
@@ -72,12 +79,12 @@ def format_article(article):
     lines.append(f"    author: '{article['author']}',")
     lines.append(f"    readingTime: {article['readingTime']},")
     lines.append("    previewImage: {")
-    lines.append(f"      url: '{article['previewImage']['url']}',")
-    lines.append(f"      alt: '{article['previewImage']['alt']}'")
+    lines.append(f'      url: "{article["previewImage"]["url"]}",')
+    lines.append(f'      alt: "{article["previewImage"]["alt"]}"')
     lines.append("    },")
     lines.append("    headerImage: {")
-    lines.append(f"      url: '{article['headerImage']['url']}',")
-    lines.append(f"      alt: '{article['headerImage']['alt']}'")
+    lines.append(f'      url: "{article["headerImage"]["url"]}",')
+    lines.append(f'      alt: "{article["headerImage"]["alt"]}"')
     lines.append("    },")
     lines.append(f"    excerpt: `{article['excerpt']}`,")
     lines.append("    sections: [")
@@ -92,16 +99,16 @@ def format_article(article):
     return '\n'.join(lines)
 
 def update_articles_ts(new_articles):
-    """Обновляет articles.ts, добавляя новые статьи в начало массива, проверяя дубликаты."""
+    """Обновляет articles.ts, добавляя новые статьи в начало массива, проверяя дубликаты по title, ограничивая до 50."""
     file_path = os.path.join(os.path.dirname(__file__), 'articles.ts')
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Найти существующие ID
-    existing_ids = set(re.findall(r"id: '([^']+)'", content))
+    # Найти существующие titles
+    existing_titles = set(re.findall(r"title: `([^`]+)`", content))
 
-    # Фильтровать новые статьи
-    unique_new_articles = [a for a in new_articles if a['id'] not in existing_ids]
+    # Фильтровать новые статьи по title
+    unique_new_articles = [a for a in new_articles if a['title'] not in existing_titles]
 
     if not unique_new_articles:
         print("Нет новых статей для добавления.")
@@ -125,7 +132,27 @@ def update_articles_ts(new_articles):
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(new_content)
 
-    print(f"Добавлено {len(unique_new_articles)} новых статей.")
+    # Ограничить до 50 статей
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    start = content.find('export const articles: ArticleData[] = [')
+    end = content.rfind('];')
+    array_str = content[start:end+2]
+
+    # Разделить на статьи
+    articles_list = array_str[array_str.find('[')+1:array_str.rfind(']')].strip()
+    if articles_list.endswith(','):
+        articles_list = articles_list[:-1]
+    articles = [art.strip() for art in articles_list.split('},\n') if art.strip()]
+    if len(articles) > 50:
+        articles = articles[:50]
+        new_array_str = 'export const articles: ArticleData[] = [\n  ' + ',\n  '.join(articles) + '\n];'
+        content = content[:start] + new_array_str + content[end+2:]
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+    print(f"Добавлено {len(unique_new_articles)} новых статей. Общее количество: {len(articles)}.")
 
 if __name__ == "__main__":
     print("Запуск парсера arXiv...")

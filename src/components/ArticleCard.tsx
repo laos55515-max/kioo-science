@@ -27,6 +27,12 @@ const tagColors: Record<string, { bg: string; text: string }> = {
 export default function ArticleCard({ article, featured = false, onOpen }: ArticleCardProps) {
   const tagStyle = tagColors[article.tag] || { bg: "#e8f0f7", text: "#2f6690" };
 
+  const fallbackImage = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=1000";
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = fallbackImage;
+  };
+
   /* ── FEATURED: большая карточка (первая статья) ─────────── */
   if (featured) {
     return (
@@ -48,6 +54,7 @@ export default function ArticleCard({ article, featured = false, onOpen }: Artic
           <img
             src={article.previewImage.url}
             alt={article.previewImage.alt}
+            onError={handleImageError}
             style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }}
           />
           <span
@@ -168,6 +175,7 @@ export default function ArticleCard({ article, featured = false, onOpen }: Artic
         <img
           src={article.previewImage.url}
           alt={article.previewImage.alt}
+          onError={handleImageError}
           style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
         />
       </div>
