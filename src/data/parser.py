@@ -3,6 +3,7 @@ from deep_translator import GoogleTranslator
 import datetime
 import re
 import os
+import random
 
 # Настройка переводчика
 translator = GoogleTranslator(source='en', target='ru')
@@ -17,6 +18,18 @@ categories = {
     'stat': 'Статистика',
     'eess': 'Электротехника'
 }
+
+# Список fallback изображений
+fallback_urls = [
+    'https://picsum.photos/seed/science1/1600/900',
+    'https://picsum.photos/seed/physics2/1600/900',
+    'https://picsum.photos/seed/math3/1600/900',
+    'https://picsum.photos/seed/bio4/1600/900',
+    'https://picsum.photos/seed/tech5/1600/900',
+    'https://picsum.photos/seed/econ6/1600/900',
+    'https://picsum.photos/seed/stat7/1600/900',
+    'https://picsum.photos/seed/elect8/1600/900',
+]
 
 def get_keyword(title):
     """Извлекает ключевое слово из заголовка для Unsplash."""
@@ -45,9 +58,8 @@ def parse_articles():
             date = datetime.datetime.now().strftime('%d %B %Y')
             keyword = get_keyword(title_en)
             image_url = f'https://source.unsplash.com/1600x900/?{keyword}'
-            fallback_url = 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=1000'
             if not keyword or not image_url.startswith('http') or 'placeholder' in image_url.lower():
-                image_url = fallback_url
+                image_url = random.choice(fallback_urls)
                 alt = 'science'
             else:
                 alt = keyword
@@ -114,16 +126,10 @@ def update_articles_ts(new_articles):
         start = content.find('export const articles: ArticleData[] = [')
         if start != -1:
             end = content.rfind('];')
-            array_str = content[start:end+2]
-            articles_list = array_str[array_str.find('[')+1:array_str.rfind(']')].strip()
-            if articles_list.endswith(','):
-                articles_list = articles_list[:-1]
-            raw_articles = articles_list.split('},\n  {')
-            existing_articles = []
-            for raw in raw_articles:
-                if raw.strip():
-                    art = '  {' + raw + '}'
-                    existing_articles.append(art)
+            array_content = content[start + len('export const articles: ArticleData[] = ['):end].strip()
+            if array_content:
+                parts = array_content.split('},\n')
+                existing_articles = [part.strip() + '}' for part in parts if part.strip()]
     
     # Фильтровать новые
     unique_new_articles = [a for a in new_articles if a['title'] not in existing_titles]

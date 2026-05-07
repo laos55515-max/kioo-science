@@ -27,10 +27,19 @@ const tagColors: Record<string, { bg: string; text: string }> = {
 export default function ArticleCard({ article, featured = false, onOpen }: ArticleCardProps) {
   const tagStyle = tagColors[article.tag] || { bg: "#e8f0f7", text: "#2f6690" };
 
-  const fallbackImage = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=1000";
+  const fallbackImages = [
+    'https://picsum.photos/seed/science1/400/250',
+    'https://picsum.photos/seed/physics2/400/250',
+    'https://picsum.photos/seed/math3/400/250',
+    'https://picsum.photos/seed/bio4/400/250',
+    'https://picsum.photos/seed/tech5/400/250',
+    'https://picsum.photos/seed/econ6/400/250',
+    'https://picsum.photos/seed/stat7/400/250',
+    'https://picsum.photos/seed/elect8/400/250',
+  ];
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = fallbackImage;
+    e.currentTarget.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
   };
 
   /* ── FEATURED: большая карточка (первая статья) ─────────── */

@@ -29,6 +29,21 @@ const tagColors: Record<string, { bg: string; text: string }> = {
 export default function ArticleModal({ article, onClose }: ArticleModalProps) {
   const tagStyle = tagColors[article.tag] || { bg: "#e8f0f7", text: "#2f6690" };
 
+  const fallbackImages = [
+    'https://picsum.photos/seed/science1/1600/900',
+    'https://picsum.photos/seed/physics2/1600/900',
+    'https://picsum.photos/seed/math3/1600/900',
+    'https://picsum.photos/seed/bio4/1600/900',
+    'https://picsum.photos/seed/tech5/1600/900',
+    'https://picsum.photos/seed/econ6/1600/900',
+    'https://picsum.photos/seed/stat7/1600/900',
+    'https://picsum.photos/seed/elect8/1600/900',
+  ];
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+  };
+
   // Блокируем скролл страницы при открытом модале
   useEffect(() => {
     document.body.classList.add("modal-open");
@@ -105,6 +120,7 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
               src={article.headerImage.url}
               alt={article.headerImage.alt}
               className="article-header-image"
+              onError={handleImageError}
             />
             {article.headerImage.caption && (
               <figcaption
@@ -263,6 +279,7 @@ export default function ArticleModal({ article, onClose }: ArticleModalProps) {
                       <img
                         src={section.image.url}
                         alt={section.image.alt}
+                        onError={handleImageError}
                         style={{
                           width: "100%",
                           maxHeight: 400,
